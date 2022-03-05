@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Tangkap telur</title>
+    <style>
+        body,html{
+            width: 100%;
+        }
+        #canvas{
+            /* border: 1px solid black; */
+            margin: 20px;
+        }
+
+        .container{
+
+            float: right;
+        }
+        .meja {
+            width: 45vmin;
+            min-height: 45vmin;
+            margin-right: 40vmin;
+            margin-top: 100px;
+            background-color:white;
+            border-radius : 20px;
+            box-shadow: 1px 1px 10px rgba(0,0,0,0.875) ; 
+            /* padding: 10px; */
+            text-align: center;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        #title{
+            background-color: rgb(27, 54, 29);
+            margin-top: -25px;
+            color : whitesmoke;
+
+        }
+
+        #point  {
+            font-size: 5em;
+            margin-top:-15px ;
+        }
+    
+        .level {
+            margin-top: -40px;
+        }
+
+        #level{
+            margin-top: -15px;
+            font-size: 5em;
+        }
+
+        .start{
+            border: 0;
+            padding:20px 30px;
+            font-size: 20px;
+            font-family:'gotham';
+            border-radius: 25px;
+            box-shadow: 1px 2px 10px rgba(0, 0, 0, 0.875);
+            background: linear-gradient(to bottom,rgb(196, 18, 18),rgb(196, 18, 18),rgb(82, 15, 15));
+            color:whitesmoke;
+            transition: all 0.2s;
+            margin-left: px;
+            margin-top: px;
+        }
+
+        .start:hover{
+            font-size:22px;
+        }
+
+        .barStart{
+            width: 600px;
+            height : 600px;
+            background: rgba(0,0,0,0.875);
+            position: absolute;
+            top:28px;
+            left:28px;   
+            text-align: center;
+            box-sizing:border-box ;
+            padding-top:100px;  
+            }
+
+        .barStart h1{
+            color:gold;
+            font-family: 'Courier New', Courier, monospace;
+            font-size:5em;
+        }
+
+        .barStart p{
+            margin-top:-40px;
+            margin-bottom:30px;
+            color:red;
+            font-size:20px;
+            font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+
+            }
+    </style>      
+</head>
+<body>
+    <div class="barStart" id="barStart">
+        <h1>Tangkap Telur</h1>
+        <p><b>Bu Parkit :</b> tolong... !!! <br>  
+            Anak-Anak ku terjatuh dari Sarang Tolong <br>Tangkap dengan keranjang itu!!!
+        </p>      
+        <button class="start" id="startBtn">
+            Start Game
+        </button>   
+    </div>
+    <canvas id="canvas" width="600" height="600">
+        
+    </canvas>
+
+    <div class="container">
+        <div class="meja">
+            <h1 id="title">
+                Score
+            </h1>
+            <p>Your Score</p>   
+            <h1 id="point">
+                0
+            </h1>
+    
+            <p class="level">Your Level</p>
+            <h1 id="level">
+                amatir
+            </h1>
+            <h1>
+                <span id="menit">00</span> : <span id="detik">00</span>        
+            </h1>  
+        </div>
+
+       
+    </div>     
+    <script>
+        var cvs = document.getElementById('canvas');
+        var ctx = cvs.getContext('2d');
+        var pointImg = document.getElementById('point');
+        var cW  = cvs.width;
+        var cH  = cvs.height;
+        var basketWidth = 100;
+        var basketHeight = 40;
+        var telurWidth = 40;
+        var telurHeight = 40;
+        var left = false;
+        var right = false;
+        var point = 0;
+        var level = '1';
+        var start = false;
+        var barStart = document.getElementById('barStart');
+        var startBtn = document.getElementById('startBtn');
+        var levelComp = document.getElementById('level');
+        var checkStatus = false;
+        var menit = 01;
+        var detik = 60;
+        var detikImg =document.getElementById('detik');
+        var menitImg = document.getElementById('menit');
+
+        // INIT IMAGE
+
+        var bgImg = new Image();
+        bgImg.src = 'img/bg.png';
+
+        var basketImg = new  Image();
+        basketImg.src = 'img/basket.png';
+
+        var telurImg = new Image();
+
+        var playerImg = new Image();
+        playerImg.src = 'img/basket.png';
+        
+        const telur = {
+            x : Math.round((Math.random() * 600)),
+            y : Math.round((Math.random() * 600)) -300,
+            speed : Math.round(Math.random() * 10),
+            banyak : 2,
+            warna : telurImg.src = 'img/' + acakTelur() + '.png', 
+        }
+
+        
+        // EVENT HANDLER
+
+        document.addEventListener('keydown', function (e) {
+            if (e.which == 37) {
+                left = true;
+            }
+
+            if (e.which == 39) {
+                right = true;
+            }
+        });
+
+        document.addEventListener('keyup', function (e) {
+            if (e.which == 37) {
+                left = false;
+            }
+
+            if (e.which == 39) {
+                right = false;
+            }
+        });
+
+        startBtn.addEventListener('click', function () {
+                barStart.style.display = 'none';
+                start = true;
+                telur.banyak = 2;
+            });
+
+
+        const player = {
+            x : cW/2-(basketWidth / 2),
+            y : cH / 2 + basketHeight + 200, 
+        }
+
+        
+        // GAME LOGIC
+
+       
+        function acakTelur() {
+            var acak = Math.round(Math.random() * 10);
+            if (acak == 0) {
+                acak = 1;
+            }
+            if (acak == 10) {
+                acak = 9;
+            }
+            return acak;
+        }
+
+        var eggs = []; 
+        
+        function createTelur() {
+            
+            for ( let a = 1 ; a <= telur.banyak ; a++) {
+                eggs [a] = [
+                Math.round((Math.random() * 600)),
+                Math.round((Math.random() * 600) - 700),
+                true
+                ];
+            }
+        }
+
+        createTelur();
+        
+        // timer
+
+        function timer() {
+            
+                setInterval(function(){
+                    if (start) {
+                    if (menit <= 0 && detik <= 0) {
+                        detik = 0;
+                        menit = 0;
+                        alert('kamu kalah skor tertinggi mu : ' + point);
+                        window.location.reload(false);
+                        // alert('selesai');
+
+                    }
+                    if (detik >= 60 ) {
+                        menit += 1;
+                        detik -= 60;
+                    }
+                
+                    if ( detik <= 0 ) {
+                        menit -= 1;
+                        detik += 60;
+                    }
+                    
+
+                    detik--;
+                    drawTimer();
+                }
+                },1000);
+           
+        } 
+
+        timer();
+
+        // DRAWING SECTION
+        function drawTimer(){
+
+            menitImg.innerHTML = menit;
+            detikImg.innerHTML = detik;
+        }
+
+        function drawTelur() {
+            eggs.forEach((e,i) => {
+                if (e[2])  {
+                    ctx.drawImage(telurImg,e[0],e[1],telurWidth,telurHeight);
+                }
+            });
+        }
+
+        function drawPoint() {
+
+            pointImg.innerHTML = point;
+        }
+
+        function drawPlayer() {
+            ctx.drawImage(basketImg,player.x,player.y,basketWidth,basketHeight);
+        }
+
+        // UPDATE SECTION
+        function updatePlayer() {
+            if (start){
+
+                if (right == true && player.x + basketWidth < cW) {
+                    player.x += 3 ;
+                }
+
+                if (left == true && player.x > 0) {
+                    player.x -= 3 ;
+                }
+            }
+        }
+
+        function moveTelur() {
+            eggs.forEach(e => {
+                if (e[2]) {
+                    e[1] += 2;
+                }
+            });
+        }
+
+        function telurPlayerCollision() {
+            
+            eggs.forEach((e,i) => {
+                if (e[0] >= player.x && e[0] <= player.x + basketWidth && e[1] + telurHeight - 10 >= player.y && e[1] <= player.y + basketHeight) {
+                    
+                    e[2] = false;
+                    eggs.splice(i,1);
+                    if (start) {
+                        point++
+                        detik += 5;
+                    }
+
+                } 
+            });
+
+
+        }
+
+        
+        function telurTembokCollision() {
+
+            eggs.forEach((e,i) => {
+                    if (e[1] + telurHeight >= cH){
+                        e[2] = false;
+                        eggs.splice(i,1);
+                        detik -= 3;
+                    } 
+            });
+        }
+
+        function drawLevel() {
+            levelComp.innerHTML= level;
+        }
+
+        function tambahPoint() {
+            point++;
+            return 0;
+        }
+
+        function isLevelDone(){
+            // console.log(eggs.length);
+            if (eggs.length <= 1 ) {
+                createTelur();
+                telur.banyak++;
+                // console.log(telur.banyak);
+                
+            }
+
+            if (point >= 20) {
+                checkStatus = true;
+            }
+
+        }
+
+
+        function leveling() {
+            if (checkStatus) {
+                // alert(checkStatus);
+                level = '2';
+                }
+        }
+
+
+        function drawBg(){
+            ctx.drawImage(bgImg,0,0);
+        }
+
+        // MAIN FUNCTION
+
+        function draw() {
+            drawBg();
+            drawTelur();
+            drawPlayer();
+            drawPoint();
+            drawLevel();
+            
+        }
+        
+        function update() {
+            moveTelur();
+            updatePlayer(); 
+            telurPlayerCollision();
+            telurTembokCollision();
+            isLevelDone();
+            leveling();
+        }
+
+        function loop() {
+            ctx.clearRect(0,0,cvs.width,cvs.height);
+            draw();
+            update();
+
+                requestAnimationFrame(loop);
+        }
+
+        loop();
+        
+    </script>
+</body>
+</html>        
